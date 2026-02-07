@@ -47,6 +47,16 @@ class PDFProcessorGUI(QWidget):
         file_layout.addWidget(self.file_path)
         file_layout.addWidget(self.browse_btn)
 
+        # --- Выбор пути сохранения ---
+        save_layout = QHBoxLayout()
+        self.save_label = QLabel("Выберите путь сохранения PDF файла:")  # Тупо текст
+        self.save_path = QLineEdit()  # Однострочный ввод
+        self.save_path_btn = QPushButton("Обзор")  # Кнопка "Обзор"
+        self.save_path_btn.clicked.connect(self.browse_save_path)
+        save_layout.addWidget(self.save_label)
+        save_layout.addWidget(self.save_path)
+        save_layout.addWidget(self.save_path_btn)
+
         # --- Текст, который не масштабировать ---
         self.exclude_label = QLabel(
             "Текст, который НЕ масштабировать <b>(с новой строки)</b>: "
@@ -72,6 +82,7 @@ class PDFProcessorGUI(QWidget):
 
         # --- Сборка ---
         layout.addLayout(file_layout)
+        layout.addLayout(save_layout)
         layout.addWidget(self.exclude_label)
         layout.addWidget(self.exclude_text)
         layout.addLayout(btn_layout)
@@ -81,9 +92,14 @@ class PDFProcessorGUI(QWidget):
         self.setLayout(layout)
 
     def browse_file(self):
-        fname, _ = QFileDialog.getOpenFileName(
-            self, "Выберите PDF файл", "", "PDF Files (*.pdf)"
-        )
+        try:
+            fname, _ = QFileDialog.getOpenFileName(
+                self, "Выберите PDF файл", "", "PDF Files (*.pdf)"
+            )
+        except Exception as e:
+            QMessageBox.warning(self, "Ошибка", e)
+            return
+
         if fname:
             self.file_path.setText(fname)
             doc = fitz.open(fname)
@@ -94,18 +110,38 @@ class PDFProcessorGUI(QWidget):
             self.status_label.setStyleSheet("color: green;")
             self.progress.setVisible(False)
 
+    def browse_save_path(self):
+        try:
+            fname = QFileDialog.getExistingDirectory(self, "Сохранить результат", "")
+        except Exception as e:
+            QMessageBox.warning(self, "Ошибка", e)
+            return
+
+        if fname:
+            self.save_path.setText(fname)
+            self.status_label.setText("Путь сохранения результата выбран!")
+            self.status_label.setStyleSheet("color: green;")
+            self.progress.setVisible(False)
+
     def process_file(self):
         pdf_path = self.file_path.text()
+        output_path = self.save_path.text() + "/result.pdf"
         exclude_lines = self.exclude_text.toPlainText().splitlines()
 
         if not pdf_path:
             QMessageBox.warning(self, "Ошибка", "Выберите PDF файл!")
             return
+        if not output_path:
+            QMessageBox.warning(self, "Ошибка", "Выберите путь сохранения результата!")
+            return
 
         self.status_label.setText("Обработка...")
 
         self.worker = PDFWorker(
-            pdf_path=pdf_path, exclude=exclude_lines, settings=self.settings
+            pdf_path=pdf_path,
+            output_path=output_path,
+            exclude=exclude_lines,
+            settings=self.settings,
         )
 
         self.progress.setVisible(True)
@@ -151,10 +187,21 @@ class PDFProcessorGUI(QWidget):
         buttons.rejected.connect(dlg.reject)
         layout.addWidget(buttons)
 
+        float_keys = ["TARGET_W", "TARGET_H", "MAX_REASONABLE_SIZE", "NORMAL_FONT_SIZE"]
+
         if dlg.exec_() == QDialog.Accepted:
             for key in edits:
                 try:
-                    self.settings[key] = float(edits[key].text())
+                    if float(edits[key].text()) < 0:
+                        raise ValueError
+                    if key in float_keys:
+                        self.settings[key] = float(edits[key].text())
+                    else:
+                        self.settings[key] = int(edits[key].text())
+                except ValueError:
+                    QMessageBox.warning(
+                        self, "Ошибка", f"Значение для {key} должно быть положительным"
+                    )
                 except:
                     QMessageBox.warning(self, "Ошибка", f"Неверное значение для {key}")
 

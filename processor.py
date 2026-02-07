@@ -10,7 +10,7 @@ TARGET_W, TARGET_H = 40 * 2.83465, 25 * 2.83465  # 40x25 мм
 
 
 # === РЕСАЙЗ СТАРОГО PDF ===
-def resize_pdf(input_pdf, output_pdf, settings):
+def resize_pdf(input_pdf, output_pdf, settings, input_dir):
     doc = fitz.open(input_pdf)
     resized_doc = fitz.open()
 
@@ -22,17 +22,19 @@ def resize_pdf(input_pdf, output_pdf, settings):
 
         new_page.show_pdf_page(new_page.rect, doc, page.number)
 
-    resized_doc.save(output_pdf)
+    resized_doc.save(os.path.join(input_dir, output_pdf))
 
 
 # === КОНВЕРТАЦИЯ PDF В DOCX ===
-def convert_to_docx(pdf_doc, docx_doc, settings):
-    cv = Converter(pdf_file=pdf_doc)
+def convert_to_docx(pdf_doc, docx_doc, settings, input_dir):
+    cv = Converter(pdf_file=os.path.join(input_dir, pdf_doc))
     if settings["EDIT_WHOLE_PDF"] == 1:
         cv.convert(docx_filename=docx_doc)  # Конвертация pdf в docx
     else:
         cv.convert(
-            docx_filename=docx_doc, start=settings["START"], end=settings["END"]
+            docx_filename=os.path.join(input_dir, docx_doc),
+            start=settings["START"],
+            end=settings["END"],
         )  # Конвертация pdf в docx
     cv.close()
 
@@ -57,8 +59,8 @@ def get_run_size(run, paragraph, settings):
     return 4
 
 
-def edit_docx(docx_doc, TEXT_TO_EXCLUDE, settings):
-    doc = Document(docx_doc)
+def edit_docx(docx_doc, TEXT_TO_EXCLUDE, settings, input_dir):
+    doc = Document(os.path.join(input_dir, docx_doc))
     for table in doc.tables:
         for row in table.rows:
             for cell in row.cells:
@@ -84,7 +86,7 @@ def edit_docx(docx_doc, TEXT_TO_EXCLUDE, settings):
             run.bold = True
             run.font.size = Pt(run.font.size.pt + 1)
 
-    doc.save("edited_output.docx")
+    doc.save(os.path.join(input_dir, "edited_output.docx"))
 
 
 def process_pdf(
@@ -94,24 +96,60 @@ def process_pdf(
     settings: dict,
     progress_cb=None,
 ):
+    # Приводим все пути к абсолютному стандарту
+    input_pdf = os.path.abspath(input_pdf)
+    output_pdf = os.path.abspath(output_pdf)
+    input_dir = os.path.dirname(input_pdf)
+
+    # Определяем полные пути временных файлов заранее
+    tmp_docx = os.path.join(input_dir, "output_doc.docx")
+    tmp_edited_docx = os.path.join(input_dir, "edited_output.docx")
+    tmp_edited_pdf = os.path.join(input_dir, "edited_output.pdf")
+
     try:
-        convert_to_docx(input_pdf, "output_doc.docx", settings)
         if progress_cb:
-            progress_cb(25)
-        edit_docx("output_doc.docx", exclude_texts, settings)
+            progress_cb(10)
+
+        # Шаг 1: PDF -> DOCX
+        # Передаем уже полный путь tmp_docx
+        convert_to_docx(input_pdf, tmp_docx, settings, input_dir)
+
+        if progress_cb:
+            progress_cb(30)
+
+        # Шаг 2: EDIT DOCX
+        # Убедитесь, что внутри edit_docx вы используете переданные пути!
+        edit_docx("output_doc.docx", exclude_texts, settings, input_dir)
+
         if progress_cb:
             progress_cb(50)
-        convert("edited_output.docx", "edited_output.pdf")
+
+        # Шаг 3: DOCX -> PDF (САМЫЙ ОПАСНЫЙ МОМЕНТ)
+        print(f"Конвертируем {tmp_edited_docx}...")
+        # Используем нормализованные пути
+        convert(os.path.normpath(tmp_edited_docx), os.path.normpath(tmp_edited_pdf))
+
         if progress_cb:
             progress_cb(75)
-        resize_pdf("edited_output.pdf", output_pdf, settings)
-    except Exception as e:
-        print(f"Произошла ошибка: {e}")
-    finally:
-        temp_files = ["output_doc.docx", "edited_output.docx", "edited_output.pdf"]
-        for file in temp_files:
-            if os.path.exists(file):
-                os.remove(file)
-                print(f"Файл {file} удален.")
+
+        # Шаг 4: RESIZE
+        resize_pdf(tmp_edited_pdf, output_pdf, settings, input_dir)
+
         if progress_cb:
             progress_cb(100)
+        print("Все этапы успешно завершены!")
+
+    except Exception as e:
+        print(f"Произошла ошибка в process_pdf: {e}")
+        import traceback
+
+        traceback.print_exc()
+    finally:
+        # УДАЛЯЕМ ПО ПОЛНЫМ ПУТЯМ
+        for file_path in [tmp_docx, tmp_edited_docx, tmp_edited_pdf]:
+            if os.path.exists(file_path):
+                try:
+                    os.remove(file_path)
+                    print(f"Файл {file_path} успешно удален.")
+                except Exception as e:
+                    print(f"Не удалось удалить {file_path}: {e}")
