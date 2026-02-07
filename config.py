@@ -1,0 +1,6 @@
+DEFAULT_SETTINGS = {
+    "TARGET_W": 40 * 2.83465,
+    "TARGET_H": 25 * 2.83465,  # 40x25 мм
+    "MAX_REASONABLE_SIZE": 6,
+    "NORMAL_FONT_SIZE": 7,
+}
