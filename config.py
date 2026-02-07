@@ -3,4 +3,7 @@ DEFAULT_SETTINGS = {
     "TARGET_H": 25 * 2.83465,  # 40x25 мм
     "MAX_REASONABLE_SIZE": 6,
     "NORMAL_FONT_SIZE": 7,
+    "EDIT_WHOLE_PDF": 1,
+    "START": 0,
+    "END": 0,
 }

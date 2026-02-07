@@ -10,12 +10,15 @@ TARGET_W, TARGET_H = 40 * 2.83465, 25 * 2.83465  # 40x25 мм
 
 
 # === РЕСАЙЗ СТАРОГО PDF ===
-def resize_pdf(input_pdf, output_pdf):
+def resize_pdf(input_pdf, output_pdf, settings):
     doc = fitz.open(input_pdf)
     resized_doc = fitz.open()
 
     for page in doc:
-        new_page = resized_doc.new_page(width=TARGET_W, height=TARGET_H)
+        new_page = resized_doc.new_page(
+            width=float(settings["TARGET_W"] * 2.83465),
+            height=float(settings["TARGET_H"] * 2.83465),
+        )
 
         new_page.show_pdf_page(new_page.rect, doc, page.number)
 
@@ -23,9 +26,14 @@ def resize_pdf(input_pdf, output_pdf):
 
 
 # === КОНВЕРТАЦИЯ PDF В DOCX ===
-def convert_to_docx(pdf_doc, docx_doc):
+def convert_to_docx(pdf_doc, docx_doc, settings):
     cv = Converter(pdf_file=pdf_doc)
-    cv.convert(docx_filename=docx_doc, start=0, end=100)  # Конвертация pdf в docx
+    if settings["EDIT_WHOLE_PDF"] == 1:
+        cv.convert(docx_filename=docx_doc)  # Конвертация pdf в docx
+    else:
+        cv.convert(
+            docx_filename=docx_doc, start=settings["START"], end=settings["END"]
+        )  # Конвертация pdf в docx
     cv.close()
 
 
@@ -80,13 +88,23 @@ def edit_docx(docx_doc, TEXT_TO_EXCLUDE, settings):
 
 
 def process_pdf(
-    input_pdf: str, output_pdf: str, exclude_texts: list[str], settings: dict
+    input_pdf: str,
+    output_pdf: str,
+    exclude_texts: list[str],
+    settings: dict,
+    progress_cb=None,
 ):
     try:
-        convert_to_docx(input_pdf, "output_doc.docx")
+        convert_to_docx(input_pdf, "output_doc.docx", settings)
+        if progress_cb:
+            progress_cb(25)
         edit_docx("output_doc.docx", exclude_texts, settings)
+        if progress_cb:
+            progress_cb(50)
         convert("edited_output.docx", "edited_output.pdf")
-        resize_pdf("edited_output.pdf", output_pdf)
+        if progress_cb:
+            progress_cb(75)
+        resize_pdf("edited_output.pdf", output_pdf, settings)
     except Exception as e:
         print(f"Произошла ошибка: {e}")
     finally:
@@ -95,3 +113,5 @@ def process_pdf(
             if os.path.exists(file):
                 os.remove(file)
                 print(f"Файл {file} удален.")
+        if progress_cb:
+            progress_cb(100)
