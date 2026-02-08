@@ -17,6 +17,7 @@ from PyQt5.QtWidgets import (
 )
 from worker import PDFWorker
 from processor import process_pdf
+from protection import check_protection
 from config import DEFAULT_SETTINGS
 import fitz
 import copy
@@ -208,6 +209,9 @@ class PDFProcessorGUI(QWidget):
 
 def main():
     app = QApplication(sys.argv)
+    if not check_protection():
+        sys.exit(1)
+
     window = PDFProcessorGUI()
     window.show()
     sys.exit(app.exec_())
