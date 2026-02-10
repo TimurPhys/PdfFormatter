@@ -38,3 +38,9 @@
 2. Укажите пароль для входа (стандратный указан в коде)
 
 3. Если захотите поменять пароль, то его придется захешировать и указать новый хэш в коде (файл protection.py)
+
+## 🚀 Картинки
+
+![main](images/main.png)
+![settings](images/settings.png)
+![password](images/password.png)
