@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QInputDialog, QMessageBox, QLineEdit
 
 CONFIG_NAME = "sys_cache.dat"
 
-# пароль: 1234
+# пароль: 12345
 PASSWORD_HASH = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5"
 
 
