@@ -1,5 +1,7 @@
 .venv
+result
 __pycache__
+*.html
 *.pdf
 *.docx
 build

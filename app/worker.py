@@ -7,9 +7,10 @@ class PDFWorker(QThread):
     finished = pyqtSignal()
     error = pyqtSignal(str)
 
-    def __init__(self, pdf_path, output_path, exclude, settings):
+    def __init__(self, pdf_path, docx_path, output_path, exclude, settings):
         super().__init__()
         self.pdf_path = pdf_path
+        self.docx_path = self.docx_path
         self.exclude = exclude
         self.settings = settings
         self.output_path = output_path
@@ -19,6 +20,7 @@ class PDFWorker(QThread):
             print(self.exclude)
             process_pdf(
                 input_pdf=self.pdf_path,
+                input_docx=self.docx_path,
                 output_pdf=self.output_path,
                 exclude_texts=self.exclude,
                 settings=self.settings,

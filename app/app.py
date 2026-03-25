@@ -38,15 +38,25 @@ class PDFProcessorGUI(QWidget):
         file_layout = (
             QHBoxLayout()
         )  # Горизонатльный layout, размещает элементы слева направо
-        self.file_label = QLabel("Выберите PDF файл:")  # Тупо текст
-        self.file_path = QLineEdit()  # Однострочный ввод
-        self.browse_btn = QPushButton("Обзор")  # Кнопка "Обзор"
-        self.browse_btn.clicked.connect(
-            self.browse_file
+        self.file_label_pdf = QLabel("Выберите PDF файл:")  # Тупо текст
+        self.file_path_pdf = QLineEdit()  # Однострочный ввод
+        self.browse_btn_pdf = QPushButton("Обзор")  # Кнопка "Обзор"
+        self.browse_btn_pdf.clicked.connect(
+            lambda: self.browse_file("pdf")
         )  # Привязываем нажатие кнопки к выполнению функции
-        file_layout.addWidget(self.file_label)
-        file_layout.addWidget(self.file_path)
-        file_layout.addWidget(self.browse_btn)
+        self.file_label_html = QLabel("Выберите HTML файл:")  # Тупо текст
+        self.file_path_html = QLineEdit()  # Однострочный ввод
+        self.browse_btn_html = QPushButton("Обзор")  # Кнопка "Обзор"
+        self.browse_btn_html.clicked.connect(
+            lambda: self.browse_file("html")
+        )  # Привязываем нажатие кнопки к выполнению функции
+        file_layout.addWidget(self.file_label_pdf)
+        file_layout.addWidget(self.file_path_pdf)
+        file_layout.addWidget(self.browse_btn_pdf)
+
+        file_layout.addWidget(self.file_label_html)
+        file_layout.addWidget(self.file_path_html)
+        file_layout.addWidget(self.browse_btn_html)
 
         # --- Выбор пути сохранения ---
         save_layout = QHBoxLayout()
@@ -92,22 +102,21 @@ class PDFProcessorGUI(QWidget):
 
         self.setLayout(layout)
 
-    def browse_file(self):
+    def browse_file(self, type):
         try:
             fname, _ = QFileDialog.getOpenFileName(
-                self, "Выберите PDF файл", "", "PDF Files (*.pdf)"
+                self, f"Выберите {type} файл", "", f"{type} Files (*.{type})"
             )
         except Exception as e:
             QMessageBox.warning(self, "Ошибка", e)
             return
 
         if fname:
-            self.file_path.setText(fname)
-            doc = fitz.open(fname)
-            page_count = len(doc)
-            self.status_label.setText(
-                f"Файл выбран! В нем содержится <b>{page_count}</b> страниц."
-            )
+            if type == "pdf":
+                self.file_path_pdf.setText(fname)
+            elif type == "html":
+                self.file_path_html.setText(fname)
+            self.status_label.setText("Файл выбран!")
             self.status_label.setStyleSheet("color: green;")
             self.progress.setVisible(False)
 
@@ -125,7 +134,8 @@ class PDFProcessorGUI(QWidget):
             self.progress.setVisible(False)
 
     def process_file(self):
-        pdf_path = self.file_path.text()
+        pdf_path = self.file_path_pdf.text()
+        html_path = self.file_path_html.text()
         output_path = self.save_path.text() + "/result.pdf"
         exclude_lines = self.exclude_text.toPlainText().splitlines()
 
@@ -141,6 +151,7 @@ class PDFProcessorGUI(QWidget):
         self.worker = PDFWorker(
             pdf_path=pdf_path,
             output_path=output_path,
+            docx_path=html_path,
             exclude=exclude_lines,
             settings=self.settings,
         )
