@@ -37,5 +37,13 @@ async def process_pdf(
 
         traceback.print_exc()
     finally:
-        pass
+        tmp_png = os.path.join(output_dir, "datamatrix.png")
+        tmp_result = os.path.join(output_dir, "result.html")
+        for file_path in [tmp_png, tmp_result]:
+            if os.path.exists(file_path):
+                try:
+                    os.remove(file_path)
+                    print(f"Файл {file_path} успешно удален.")
+                except Exception as e:
+                    print(f"Не удалось удалить {file_path}: {e}")
         # УДАЛЯЕМ ПО ПОЛНЫМ ПУТЯМ
