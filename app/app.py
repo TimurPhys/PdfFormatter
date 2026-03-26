@@ -15,11 +15,10 @@ from PyQt5.QtWidgets import (
     QComboBox,
     QCheckBox,
 )
+from PyQt5.QtCore import Qt
 from worker import PDFWorker
-from processor import process_pdf
+from settings.settings_manager import SettingsManager
 from protection import check_protection
-from config import DEFAULT_SETTINGS
-import fitz
 import copy
 
 
@@ -28,7 +27,8 @@ class PDFProcessorGUI(QWidget):
     def __init__(self):
         super().__init__()  # Вызываем конструктор дочернего класса
         self.setWindowTitle("PDF Processor")  # Даем название окну
-        self.settings = copy.deepcopy(DEFAULT_SETTINGS)  # Копируем настройки в класс
+        self.settings_manager = SettingsManager()  # Копируем настройки в класс
+        self.settings = self.settings_manager.load_settings()
         self.init_ui()  # Создаем графический интерфейс
 
     def init_ui(self):
@@ -44,7 +44,13 @@ class PDFProcessorGUI(QWidget):
         self.browse_btn_pdf.clicked.connect(
             lambda: self.browse_file("pdf")
         )  # Привязываем нажатие кнопки к выполнению функции
-        self.file_label_html = QLabel("Выберите HTML файл:")  # Тупо текст
+
+        self.file_label_html = QLabel(
+            "Выберите <a href='https://tools.pdf24.org/en/pdf-to-html'>HTML файл</a>:"
+        )  # Тупо текст
+        self.file_label_html.setOpenExternalLinks(True)
+        self.file_label_html.setCursor(Qt.CursorShape.PointingHandCursor)
+
         self.file_path_html = QLineEdit()  # Однострочный ввод
         self.browse_btn_html = QPushButton("Обзор")  # Кнопка "Обзор"
         self.browse_btn_html.clicked.connect(
@@ -136,11 +142,14 @@ class PDFProcessorGUI(QWidget):
     def process_file(self):
         pdf_path = self.file_path_pdf.text()
         html_path = self.file_path_html.text()
-        output_path = self.save_path.text() + "/result.pdf"
-        exclude_lines = self.exclude_text.toPlainText().splitlines()
+        output_path = self.save_path.text()
+        self.settings["EXCEPTIONS"] = self.exclude_text.toPlainText().splitlines()
 
         if not pdf_path:
             QMessageBox.warning(self, "Ошибка", "Выберите PDF файл!")
+            return
+        if not html_path:
+            QMessageBox.warning(self, "Ошибка", "Выберите HTML файл!")
             return
         if not output_path:
             QMessageBox.warning(self, "Ошибка", "Выберите путь сохранения результата!")
@@ -148,13 +157,7 @@ class PDFProcessorGUI(QWidget):
 
         self.status_label.setText("Обработка...")
 
-        self.worker = PDFWorker(
-            pdf_path=pdf_path,
-            output_path=output_path,
-            docx_path=html_path,
-            exclude=exclude_lines,
-            settings=self.settings,
-        )
+        self.worker = PDFWorker(pdf_path, html_path, output_path, self.settings)
 
         self.progress.setVisible(True)
         self.progress.setValue(0)
@@ -175,6 +178,12 @@ class PDFProcessorGUI(QWidget):
         self.status_label.setStyleSheet("color: red")
         self.progress.setVisible(False)
 
+    def choose_dir(self, key, edits):
+        directory = QFileDialog.getExistingDirectory(self, "Выберите папку")
+        if directory:
+            edits[key].setText(directory)
+            self.settings["ICONS_DIR"] = directory
+
     def admin_settings_window(self):
         from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox
 
@@ -186,7 +195,25 @@ class PDFProcessorGUI(QWidget):
         edits = {}
         for key, val in self.settings.items():
             edits[key] = QLineEdit(str(val))
-            if key == "TARGET_W" or key == "TARGET_H":
+            if key == "ICONS_DIR":
+                # 1. Создаем контейнер и горизонтальный слой
+                h_layout = QHBoxLayout()
+
+                # 2. Создаем кнопку "Обзор"
+                btn_browse = QPushButton("Обзор")
+
+                # 3. Добавляем поле и кнопку в этот слой
+                h_layout.addWidget(edits[key])
+                h_layout.addWidget(btn_browse)
+
+                # 4. Подключаем функцию выбора папки (лямбда-функция для удобства)
+                btn_browse.clicked.connect(lambda ch, k=key: self.choose_dir(k, edits))
+
+                # 5. Добавляем в основной layout не виджет, а этот слой
+                layout.addRow("ICONS_DIR:", h_layout)
+            elif key == "EXCEPTIONS":
+                continue
+            elif key == "TARGET_W" or key == "TARGET_H":
                 layout.addRow(f"{key} (мм)", edits[key])
             elif key == "MAX_REASONABLE_SIZE" or key == "NORMAL_FONT_SIZE":
                 layout.addRow(f"{key} (пк)", edits[key])
@@ -199,23 +226,20 @@ class PDFProcessorGUI(QWidget):
         buttons.rejected.connect(dlg.reject)
         layout.addWidget(buttons)
 
-        float_keys = ["TARGET_W", "TARGET_H", "MAX_REASONABLE_SIZE", "NORMAL_FONT_SIZE"]
+        float_keys = [
+            "TARGET_W",
+            "TARGET_H",
+            "FACTOR",
+        ]
 
         if dlg.exec_() == QDialog.Accepted:
-            for key in edits:
-                try:
-                    if float(edits[key].text()) < 0:
-                        raise ValueError
+            try:
+                self.settings_manager.save_settings(self.settings)
+                for key in edits:
                     if key in float_keys:
                         self.settings[key] = float(edits[key].text())
-                    else:
-                        self.settings[key] = int(edits[key].text())
-                except ValueError:
-                    QMessageBox.warning(
-                        self, "Ошибка", f"Значение для {key} должно быть положительным"
-                    )
-                except:
-                    QMessageBox.warning(self, "Ошибка", f"Неверное значение для {key}")
+            except Exception as e:
+                QMessageBox.warning(self, "Ошибка", f"{e}")
 
 
 def main():
