@@ -16,6 +16,7 @@ DEFAULT_SETTINGS = {
         "height": 15,
     },
     "ICONS_DIR": "",
+    "BROWSER": "chrome",
 }
 
 app_data_path = os.path.join(os.environ["APPDATA"], "PdfFormatter", "settings.json")
@@ -33,6 +34,13 @@ class SettingsManager:
                 return json.load(f)
         # Если файла нет, возвращаем значения по умолчанию
         return DEFAULT_SETTINGS
+
+    def drop_settings(self):
+        dir_path = os.path.dirname(self.filename)
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path, exist_ok=True)
+        with open(self.filename, "w", encoding="utf-8") as f:
+            json.dump(DEFAULT_SETTINGS, f, indent=4, ensure_ascii=False)
 
     def save_settings(self, new_settings):
         self.settings = new_settings

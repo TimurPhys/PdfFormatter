@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup
 import tinycss2
 import os
-import sys
 import io
 import re
 
@@ -9,10 +8,6 @@ from process.html_text_edit import get_font_size, edit_span_style, useful_select
 from process.pdf_extract import extract_image_from_page
 from process.insert_images import insert_image_to_html, insert_logo_to_html
 from process.convert_to_pdf import html_to_pdf
-
-# Это заставит консоль принимать любые символы (кириллицу, латышский и т.д.)
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
-sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
 
 def edit_document(

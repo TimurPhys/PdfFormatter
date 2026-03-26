@@ -4,7 +4,7 @@ from playwright.async_api import async_playwright
 async def html_to_pdf(html_path, output_pdf, settings):
     print(html_path)
     async with async_playwright() as p:
-        browser = await p.chromium.launch()
+        browser = await p.chromium.launch(channel=settings.get("BROWSER"))
         page = await browser.new_page()
         await page.goto(f"file:///{html_path}", wait_until="networkidle")
 

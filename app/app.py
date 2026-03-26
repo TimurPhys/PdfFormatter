@@ -10,16 +10,12 @@ from PyQt5.QtWidgets import (
     QTextEdit,
     QLineEdit,
     QMessageBox,
-    QInputDialog,
     QProgressBar,
-    QComboBox,
-    QCheckBox,
 )
 from PyQt5.QtCore import Qt
 from worker import PDFWorker
 from settings.settings_manager import SettingsManager
 from protection import check_protection
-import copy
 
 
 ### ГЛАВНОЕ ОКНО
@@ -215,8 +211,6 @@ class PDFProcessorGUI(QWidget):
                 continue
             elif key == "TARGET_W" or key == "TARGET_H":
                 layout.addRow(f"{key} (мм)", edits[key])
-            elif key == "MAX_REASONABLE_SIZE" or key == "NORMAL_FONT_SIZE":
-                layout.addRow(f"{key} (пк)", edits[key])
             else:
                 layout.addRow(key, edits[key])
 
