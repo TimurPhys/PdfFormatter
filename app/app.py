@@ -44,24 +44,9 @@ class PDFProcessorGUI(QWidget):
             lambda: self.browse_file("pdf")
         )  # Привязываем нажатие кнопки к выполнению функции
 
-        self.file_label_html = QLabel(
-            "Выберите <a href='https://tools.pdf24.org/en/pdf-to-html'>HTML файл</a>:"
-        )  # Тупо текст
-        self.file_label_html.setOpenExternalLinks(True)
-        self.file_label_html.setCursor(Qt.CursorShape.PointingHandCursor)
-
-        self.file_path_html = QLineEdit()  # Однострочный ввод
-        self.browse_btn_html = QPushButton("Обзор")  # Кнопка "Обзор"
-        self.browse_btn_html.clicked.connect(
-            lambda: self.browse_file("html")
-        )  # Привязываем нажатие кнопки к выполнению функции
         file_layout.addWidget(self.file_label_pdf)
         file_layout.addWidget(self.file_path_pdf)
         file_layout.addWidget(self.browse_btn_pdf)
-
-        file_layout.addWidget(self.file_label_html)
-        file_layout.addWidget(self.file_path_html)
-        file_layout.addWidget(self.browse_btn_html)
 
         # --- Выбор пути сохранения ---
         save_layout = QHBoxLayout()
@@ -140,15 +125,11 @@ class PDFProcessorGUI(QWidget):
 
     def process_file(self):
         pdf_path = self.file_path_pdf.text()
-        html_path = self.file_path_html.text()
         output_path = self.save_path.text()
         self.settings["EXCEPTIONS"] = self.exclude_text.toPlainText().splitlines()
 
         if not pdf_path:
             QMessageBox.warning(self, "Ошибка", "Выберите PDF файл!")
-            return
-        if not html_path:
-            QMessageBox.warning(self, "Ошибка", "Выберите HTML файл!")
             return
         if not output_path:
             QMessageBox.warning(self, "Ошибка", "Выберите путь сохранения результата!")
@@ -156,7 +137,7 @@ class PDFProcessorGUI(QWidget):
 
         self.status_label.setText("Обработка...")
 
-        self.worker = PDFWorker(pdf_path, html_path, output_path, self.settings)
+        self.worker = PDFWorker(pdf_path, output_path, self.settings)
 
         self.progress.setVisible(True)
         self.progress.setValue(0)
@@ -183,12 +164,28 @@ class PDFProcessorGUI(QWidget):
             edits[key].setText(directory)
             self.settings["ICONS_DIR"] = directory
 
+    def drop_settings(self):
+        reply = QMessageBox.question(
+            self,
+            "Подтверждение",
+            "Вы действительно хотите сбросить настройки?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if reply == QMessageBox.Yes:
+            print("Сброс настроек")
+            self.settings_manager.drop_settings()
+            self.settings = self.settings_manager.load_settings()
+            self.settings_window.close()
+        else:
+            print("Отмена сброса")
+
     def admin_settings_window(self):
         from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox
 
-        dlg = QDialog(self)
-        dlg.setWindowTitle("Глубокие настройки")
-        layout = QFormLayout(dlg)
+        self.settings_window = QDialog(self)
+        self.settings_window.setWindowTitle("Глубокие настройки")
+        layout = QFormLayout(self.settings_window)
 
         # Поля настроек
         edits = {}
@@ -240,10 +237,14 @@ class PDFProcessorGUI(QWidget):
             else:
                 layout.addRow(key, edits[key])
 
+        self.drop_settings_button = QPushButton("Сбросить значения")
+        self.drop_settings_button.clicked.connect(self.drop_settings)
+        layout.addRow(self.drop_settings_button)
+
         # Кнопки Сохранить/Отмена
         buttons = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
-        buttons.accepted.connect(dlg.accept)
-        buttons.rejected.connect(dlg.reject)
+        buttons.accepted.connect(self.settings_window.accept)
+        buttons.rejected.connect(self.settings_window.reject)
         layout.addWidget(buttons)
 
         float_keys = [
@@ -253,7 +254,7 @@ class PDFProcessorGUI(QWidget):
         ]
         int_keys = ["START", "END"]
 
-        if dlg.exec_() == QDialog.Accepted:
+        if self.settings_window.exec_() == QDialog.Accepted:
             try:
                 for key in edits:
                     if key in float_keys:

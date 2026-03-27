@@ -7,10 +7,9 @@ class PDFWorker(QThread):
     finished = pyqtSignal()
     error = pyqtSignal(str)
 
-    def __init__(self, input_pdf, input_html, output_path, settings):
+    def __init__(self, input_pdf, output_path, settings):
         super().__init__()
         self.input_pdf = input_pdf
-        self.input_html = input_html
         self.settings = settings
         self.output_path = output_path
 
@@ -18,7 +17,6 @@ class PDFWorker(QThread):
         try:
             asyncio.run(process_pdf(
                 self.input_pdf,
-                self.input_html,
                 self.output_path,
                 self.settings,
                 self.progress.emit,

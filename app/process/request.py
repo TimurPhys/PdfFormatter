@@ -16,6 +16,7 @@ def convert_pdf_to_html(pdf_path, output_dir, settings):
                 "input": ["upload-task"],
                 "input_format": "pdf",
                 "output_format": "html",
+                "engine": "mupdf",
                 "outline": False,
                 "zoom": 1.5,
                 "embed_css": True,
