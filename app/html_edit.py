@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import tinycss2
 import os
 import io
+import json
 import re
 
 from process.html_text_edit import get_font_size, edit_span_style, useful_selectors
@@ -24,28 +25,30 @@ def edit_document(
     exceptions = settings["EXCEPTIONS"]
     logo_size = settings["LOGO_SIZE"]
 
+    pages = soup.find_all("div", id=re.compile(r"^page"))
+
     ### --- Редактирование текста ---- ###
     style_text = soup.find("style").string
     rules = tinycss2.parse_stylesheet(
         style_text, skip_comments=True, skip_whitespace=True
     )
 
-    for span in soup.find_all("span"):
-        has_exception = False
-        new_style = "font-weight: 600 !important;"
-        for exception in exceptions:
-            if exception in span.text:
-                has_exception = True
+    for page in pages:
+        for span in page.find_all("span"):
+            has_exception = False
+            new_style = "font-weight: 600 !important;"
+            for exception in exceptions:
+                if exception in span.text:
+                    has_exception = True
 
-        if not has_exception:
-            font_size = float(get_font_size(span, rules))
-            new_style += f"font-size: {font_size * factor}em;"
-        edit_span_style(span, new_style)
+            if not has_exception:
+                font_size = float(get_font_size(span, rules))
+                new_style += f"font-size: {font_size * factor}em;"
+            edit_span_style(span, new_style)
     useful_selectors.clear()
     ### --- Редактирование текста ---- ###
 
     ### --- Вставка картинок ---- ###
-    pages = soup.find_all("div", id=re.compile(r"^page"))
     for page in pages:
         page_number = int(page.get("id").replace("page_", ""))
         rect = extract_image_from_page(

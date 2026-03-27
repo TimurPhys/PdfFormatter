@@ -11,9 +11,12 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QMessageBox,
     QProgressBar,
+    QCheckBox,
 )
 from PyQt5.QtCore import Qt
 from worker import PDFWorker
+import json
+import ast
 from settings.settings_manager import SettingsManager
 from protection import check_protection
 
@@ -24,6 +27,7 @@ class PDFProcessorGUI(QWidget):
         super().__init__()  # Вызываем конструктор дочернего класса
         self.setWindowTitle("PDF Processor")  # Даем название окну
         self.settings_manager = SettingsManager()  # Копируем настройки в класс
+        # self.settings_manager.drop_settings()
         self.settings = self.settings_manager.load_settings()
         self.init_ui()  # Создаем графический интерфейс
 
@@ -190,6 +194,8 @@ class PDFProcessorGUI(QWidget):
         # Поля настроек
         edits = {}
         for key, val in self.settings.items():
+            # if key == "LOGO_SIZE":
+            #     val = json.dumps(str(val), ensure_ascii=False)
             edits[key] = QLineEdit(str(val))
             if key == "ICONS_DIR":
                 # 1. Создаем контейнер и горизонтальный слой
@@ -209,8 +215,29 @@ class PDFProcessorGUI(QWidget):
                 layout.addRow("ICONS_DIR:", h_layout)
             elif key == "EXCEPTIONS":
                 continue
+            elif key == "EDIT_WHOLE_PDF":
+                row_layout = QHBoxLayout()
+                self.cb = QCheckBox(str(key), self)
+                self.cb.setChecked(bool(self.settings.get("EDIT_WHOLE_PDF")))
+                self.cb.setLayoutDirection(Qt.RightToLeft)
+                self.cb.setStyleSheet("margin-left: 0;")
+                self.cb.stateChanged.connect(
+                    lambda state: [
+                        edits["START"].setEnabled(state == 0),
+                        edits["END"].setEnabled(state == 0),
+                        self.settings.update(
+                            {"EDIT_WHOLE_PDF": state == 2}
+                        ),  # обновляем настройки сразу
+                    ]
+                )
+                row_layout.addWidget(self.cb)
+                row_layout.addStretch()
+                layout.addRow(row_layout)
             elif key == "TARGET_W" or key == "TARGET_H":
                 layout.addRow(f"{key} (мм)", edits[key])
+            elif key == "START" or key == "END":
+                edits[key].setEnabled(not self.settings.get("EDIT_WHOLE_PDF", False))
+                layout.addRow(key, edits[key])
             else:
                 layout.addRow(key, edits[key])
 
@@ -225,13 +252,25 @@ class PDFProcessorGUI(QWidget):
             "TARGET_H",
             "FACTOR",
         ]
+        int_keys = ["START", "END"]
 
         if dlg.exec_() == QDialog.Accepted:
             try:
-                self.settings_manager.save_settings(self.settings)
                 for key in edits:
                     if key in float_keys:
                         self.settings[key] = float(edits[key].text())
+                    elif key in int_keys:
+                        if int(edits[key].text()) <= 0:
+                            raise ValueError("Значения номеров страниц должны быть положительными!")
+                        self.settings[key] = int(edits[key].text())
+                    elif key == "LOGO_SIZE":
+                        self.settings[key] = ast.literal_eval(edits[key].text())
+                    elif key == "EDIT_WHOLE_PDF":
+                        continue
+                    else:
+                        self.settings[key] = edits[key].text()
+                self.settings_manager.save_settings(self.settings)
+                print(self.settings)
             except Exception as e:
                 QMessageBox.warning(self, "Ошибка", f"{e}")
 

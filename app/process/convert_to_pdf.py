@@ -24,7 +24,10 @@ async def html_to_pdf(html_path, output_pdf, settings):
             }
         """
         )
-        div = await page.wait_for_selector("div[id^='page']", timeout=5000)
+        divs = await page.query_selector_all("div[id^='page']")
+        max_page = len(divs)
+
+        div = divs[0]
         if div:
             box = await div.bounding_box()
             if box:
@@ -36,14 +39,29 @@ async def html_to_pdf(html_path, output_pdf, settings):
 
         scale = calculate_scale(settings, box)
 
+        edit_whole_pdf = settings["EDIT_WHOLE_PDF"]
+        start_page = settings["START"]
+        end_page = settings["END"]
+
+        if not edit_whole_pdf and end_page <= max_page:
+            await page.pdf(
+                path=output_pdf,
+                page_ranges=f"{start_page}-{end_page}",
+                width=f"{box.get('width')*scale}px",
+                height=f"{box.get('height')*scale}px",
+                scale=scale,
+                print_background=True,  # Чтобы сохранились цвета и фоны
+            )
+        else:
+            await page.pdf(
+                path=output_pdf,
+                width=f"{box.get('width')*scale}px",
+                height=f"{box.get('height')*scale}px",
+                scale=scale,
+                print_background=True,  # Чтобы сохранились цвета и фоны
+            )
+
         # Генерируем PDF штатными средствами браузера
-        await page.pdf(
-            path=output_pdf,
-            width=f"{box.get('width')*scale}px",
-            height=f"{box.get('height')*scale}px",
-            scale=scale,
-            print_background=True,  # Чтобы сохранились цвета и фоны
-        )
         await browser.close()
 
 

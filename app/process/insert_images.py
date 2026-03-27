@@ -1,8 +1,7 @@
 import os
 
-def insert_image_to_html(
-    soup, parent_div, rect, output_dir, img_name="datamatrix.png"
-):
+
+def insert_image_to_html(soup, parent_div, rect, output_dir, img_name="datamatrix.png"):
     # 1. Сохраняем байты в файл
     img_path = os.path.join(output_dir, img_name)
 
@@ -37,10 +36,10 @@ def insert_logo_to_html(soup, parent_div, size, logo_path):
 
     new_img["style"] = (
         f"position: absolute; "
-        f"left: {size['x0']}em; "
-        f"top: {size['y0']}em; "
-        f"width: {size['width']}pt; "
-        f"height: {size['height']}pt; "
+        f"left: {float(size['x0'])}em; "
+        f"top: {float(size['y0'])}em; "
+        f"width: {float(size['width'])}pt; "
+        f"height: {float(size['height'])}pt; "
         f"z-index: 1000;"
     )
     if parent_div:

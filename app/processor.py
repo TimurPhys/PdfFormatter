@@ -22,7 +22,6 @@ async def process_pdf(
             edit_document(input_html, input_pdf, icons_dir, output_dir, settings)
 
         if progress_cb:
-
             html_result_path = (Path(output_dir) / "result.html").resolve().as_posix()
             print(html_result_path)
             pdf_result_path = (Path(output_dir) / "result.pdf").resolve()

@@ -1,12 +1,13 @@
 import json
+import sys
 import os
 
 DEFAULT_SETTINGS = {
     "TARGET_W": 40.0,
     "TARGET_H": 25.0,  # 40x25 мм
-    "EDIT_WHOLE_PDF": 1,
-    "START": 0,
-    "END": 0,
+    "START": 1,
+    "END": 1,
+    "EDIT_WHOLE_PDF": True,
     "FACTOR": 1.2,
     "EXCEPTIONS": [],
     "LOGO_SIZE": {
@@ -19,7 +20,20 @@ DEFAULT_SETTINGS = {
     "BROWSER": "chrome",
 }
 
-app_data_path = os.path.join(os.environ["APPDATA"], "PdfFormatter", "settings.json")
+
+def get_project_root():
+    # Если приложение собрано в .exe через PyInstaller
+    if getattr(sys, "frozen", False):
+        # sys._MEIPASS — это временная папка, куда PyInstaller распаковывает ресурсы
+        # Но настройки нам нужно хранить РЯДОМ с .exe, а не во временной папке
+        return os.path.dirname(sys.executable)
+    else:
+        # Если запускаем как обычный .py скрипт
+        return os.path.dirname(os.path.abspath(__file__))
+
+
+root = get_project_root()
+app_data_path = os.path.join(root, "settings.json")
 
 
 class SettingsManager:

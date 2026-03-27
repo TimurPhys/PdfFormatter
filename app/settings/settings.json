@@ -1,0 +1,17 @@
+{
+    "TARGET_W": 40.0,
+    "TARGET_H": 25.0,
+    "START": 1,
+    "END": 1,
+    "EDIT_WHOLE_PDF": true,
+    "FACTOR": 1.2,
+    "EXCEPTIONS": "[]",
+    "LOGO_SIZE": {
+        "x0": 2.5,
+        "y0": 8,
+        "width": 15,
+        "height": 15
+    },
+    "ICONS_DIR": "H:/VisualStudioProjects/PdfFormatter/icons",
+    "BROWSER": "chrome"
+}
