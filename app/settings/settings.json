@@ -5,13 +5,14 @@
     "END": 1,
     "EDIT_WHOLE_PDF": true,
     "FACTOR": 1.2,
-    "EXCEPTIONS": "[]",
+    "EXCEPTIONS": [],
     "LOGO_SIZE": {
         "x0": 2.5,
         "y0": 8,
         "width": 15,
         "height": 15
     },
-    "ICONS_DIR": "H:/VisualStudioProjects/PdfFormatter/icons",
-    "BROWSER": "chrome"
+    "ICONS_DIR": "",
+    "BROWSER": "chrome",
+    "API_KEY": ""
 }

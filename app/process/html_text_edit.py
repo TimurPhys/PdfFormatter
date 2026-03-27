@@ -1,6 +1,4 @@
-useful_selectors = {}
-
-def get_font_size(span, rules):
+def get_font_size(span, classes_with_font_size):
     classes = span.get("class", "")
     if not classes:
         return None

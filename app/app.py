@@ -15,7 +15,6 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 from worker import PDFWorker
-import json
 import ast
 from settings.settings_manager import SettingsManager
 from protection import check_protection
@@ -261,7 +260,9 @@ class PDFProcessorGUI(QWidget):
                         self.settings[key] = float(edits[key].text())
                     elif key in int_keys:
                         if int(edits[key].text()) <= 0:
-                            raise ValueError("Значения номеров страниц должны быть положительными!")
+                            raise ValueError(
+                                "Значения номеров страниц должны быть положительными!"
+                            )
                         self.settings[key] = int(edits[key].text())
                     elif key == "LOGO_SIZE":
                         self.settings[key] = ast.literal_eval(edits[key].text())
