@@ -272,7 +272,6 @@ class PDFProcessorGUI(QWidget):
                     else:
                         self.settings[key] = edits[key].text()
                 self.settings_manager.save_settings(self.settings)
-                print(self.settings)
             except Exception as e:
                 QMessageBox.warning(self, "Ошибка", f"{e}")
 
