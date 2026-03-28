@@ -65,3 +65,4 @@ class SettingsManager:
         with open(self.filename, "w", encoding="utf-8") as f:
             # indent=4 делает файл "красивым" и читаемым для человека
             json.dump(self.settings, f, indent=4, ensure_ascii=False)
+        print("Настройки успешно сохранены")

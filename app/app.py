@@ -135,7 +135,9 @@ class PDFProcessorGUI(QWidget):
             QMessageBox.warning(self, "Ошибка", "Выберите путь сохранения результата!")
             return
 
+        self.status_label.setStyleSheet("color: green;")
         self.status_label.setText("Обработка...")
+        self.process_btn.setEnabled(False)
 
         self.worker = PDFWorker(pdf_path, output_path, self.settings)
 
@@ -149,6 +151,8 @@ class PDFProcessorGUI(QWidget):
     # При окончании
     def on_finished(self):
         self.progress.setValue(100)
+        self.process_btn.setEnabled(True)
+        self.progress.setVisible(False)
         self.status_label.setText("Готово! Результат: result.pdf")
 
     # При ошибке
@@ -156,6 +160,7 @@ class PDFProcessorGUI(QWidget):
         QMessageBox.critical(self, "Ошибка", msg)
         self.status_label.setText("Произошла ошибка!")
         self.status_label.setStyleSheet("color: red")
+        self.process_btn.setEnabled(True)
         self.progress.setVisible(False)
 
     def choose_dir(self, key, edits):

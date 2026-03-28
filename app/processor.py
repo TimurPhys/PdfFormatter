@@ -36,10 +36,7 @@ async def process_pdf(
             print("Все этапы успешно завершены!")
 
     except Exception as e:
-        print(f"Произошла ошибка в process_pdf: {e}")
-        import traceback
-
-        traceback.print_exc()
+        raise Exception(f"Произошла ошибка: {e}")
     finally:
         pass
         tmp_png = os.path.join(output_dir, "datamatrix.png")

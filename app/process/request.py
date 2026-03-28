@@ -34,31 +34,28 @@ def convert_pdf_to_html(pdf_path, output_dir, settings):
         "tag": "jobbuilder",
     }
 
-    try:
-        # 3. Загружаем локальный файл
-        job = cloudconvert.Job.create(payload=payload)
-        upload_task_id = job["tasks"][0]["id"]
-        upload_task = cloudconvert.Task.find(id=upload_task_id)
+    # 3. Загружаем локальный файл
+    job = cloudconvert.Job.create(payload=payload)
 
-        print(f"--- Загрузка файла: {pdf_path} ---")
-        cloudconvert.Task.upload(file_name=pdf_path, task=upload_task)
+    upload_task_id = job["tasks"][0]["id"]
+    upload_task = cloudconvert.Task.find(id=upload_task_id)
 
-        print("--- Ожидание завершения... ---")
-        finished_job = cloudconvert.Job.wait(id=job["id"])
-        print(finished_job)
+    print(f"--- Загрузка файла: {pdf_path} ---")
+    cloudconvert.Task.upload(file_name=pdf_path, task=upload_task)
 
-        export_task = next(
-            t for t in finished_job["tasks"] if t["name"] == "export-task"
-        )
+    print("--- Ожидание завершения... ---")
+    finished_job = cloudconvert.Job.wait(id=job["id"])
+    print(finished_job)
 
-        if export_task["status"] == "finished":
-            file_info = export_task["result"]["files"][0]
-            output_file = os.path.join(output_dir, "output.html")
+    export_task = next(t for t in finished_job["tasks"] if t["name"] == "export-task")
 
-            cloudconvert.download(url=file_info["url"], filename=output_file)
-            print(f"--- Успех! Файл сохранен: {output_file} ---")
-        else:
-            print(f"Ошибка: Статус задачи {export_task['status']}")
+    if export_task["status"] == "finished":
+        file_info = export_task["result"]["files"][0]
+        output_file = os.path.join(output_dir, "output.html")
 
-    except Exception as e:
-        print(f"Произошла ошибка: {e}")
+        cloudconvert.download(url=file_info["url"], filename=output_file)
+        print(f"--- Успех! Файл сохранен: {output_file} ---")
+    elif export_task["status"] == "error":
+        raise Exception("Ошибка запроса на сервер")
+    else:
+        raise Exception("Неизвестная ошибка")
