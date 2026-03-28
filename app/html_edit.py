@@ -6,6 +6,7 @@ import re
 from process.html_text_edit import edit_span_style
 from process.pdf_extract import extract_image_from_page
 from process.insert_images import insert_image_to_html, insert_logo_to_html
+from process.convert_to_pdf import calculate_scale
 
 
 def edit_document(
@@ -26,7 +27,7 @@ def edit_document(
 
     ### --- Редактирование текста ---- ###
     for page in pages:
-        page["style"] += "; padding: 2px;"
+        page["style"] += "; padding: 2px; box-shadow: none !important;"
         for span in page.find_all("span"):
             has_exception = False
             new_style = "; font-weight: 600 !important;"

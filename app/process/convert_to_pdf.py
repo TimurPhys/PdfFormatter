@@ -21,6 +21,7 @@ async def html_to_pdf(html_path, output_pdf, settings):
                 margin: 0 !important; 
                 padding: 0 !important; 
                 -webkit-print-color-adjust: exact;
+                background-color: white !important;
             }
         """
         )
@@ -47,18 +48,16 @@ async def html_to_pdf(html_path, output_pdf, settings):
             await page.pdf(
                 path=output_pdf,
                 page_ranges=f"{start_page}-{end_page}",
-                width=f"{box.get('width')*scale}px",
-                height=f"{box.get('height')*scale}px",
+                width=f"{(box.get('width') - 2)*scale}px",
+                height=f"{(box.get('height') - 2)*scale}px",
                 scale=scale,
-                print_background=True,  # Чтобы сохранились цвета и фоны
             )
         else:
             await page.pdf(
                 path=output_pdf,
-                width=f"{box.get('width')*scale}px",
-                height=f"{box.get('height')*scale}px",
+                width=f"{(box.get('width') - 2)*scale}px",
+                height=f"{(box.get('height') - 2)*scale}px",
                 scale=scale,
-                print_background=True,  # Чтобы сохранились цвета и фоны
             )
 
         # Генерируем PDF штатными средствами браузера

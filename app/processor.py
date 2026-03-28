@@ -1,5 +1,4 @@
 from html_edit import *
-
 from html_edit import edit_document
 from process.convert_to_pdf import html_to_pdf
 from process.request import convert_pdf_to_html
@@ -42,7 +41,7 @@ async def process_pdf(
         tmp_png = os.path.join(output_dir, "datamatrix.png")
         tmp_html = os.path.join(output_dir, "output.html")
         tmp_result = os.path.join(output_dir, "result.html")
-        for file_path in [tmp_png, tmp_result, tmp_html]:
+        for file_path in [tmp_png, tmp_html, tmp_result]:
             if os.path.exists(file_path):
                 try:
                     os.remove(file_path)
