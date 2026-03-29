@@ -61,7 +61,7 @@ def edit_document(
                 soup, parent_div, logo_size, EAC_icon
             )  # Вставляем лого EAC
             insert_image_to_html(
-                soup, parent_div, rect, output_dir
+                soup, parent_div, rect, output_dir, page_number
             )  # Вставляем извлеченную картинку
 
     # ### --- Вставка картинок ---- ###

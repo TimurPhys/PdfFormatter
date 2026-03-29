@@ -2,9 +2,7 @@ import fitz
 import os
 
 
-def extract_image_from_page(
-    pdf_path, page_index, output_dir, image_name="datamatrix.png"
-):
+def extract_image_from_page(pdf_path, page_index, output_dir):
     if not os.path.exists(pdf_path):
         return
     doc = fitz.open(pdf_path)
@@ -35,7 +33,13 @@ def extract_image_from_page(
     base_image = doc.extract_image(qr_code_xref)
     image_bytes = base_image["image"]
 
-    with open(os.path.join(output_dir, image_name), "wb") as f:
+    images_directory = os.path.join(output_dir, "images")
+    if not os.path.exists(images_directory):
+        os.makedirs(images_directory, exist_ok=True)
+
+    with open(
+        os.path.join(images_directory, f"datamatrix-{page_index}.png"), "wb"
+    ) as f:
         f.write(image_bytes)
 
     doc.close()

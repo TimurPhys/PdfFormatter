@@ -1,9 +1,10 @@
 import os
 
 
-def insert_image_to_html(soup, parent_div, rect, output_dir, img_name="datamatrix.png"):
+def insert_image_to_html(soup, parent_div, rect, output_dir, page_index):
     # 1. Сохраняем байты в файл
-    img_path = os.path.join(output_dir, img_name)
+    images_directory = os.path.join(output_dir, "images")
+    img_path = os.path.join(images_directory, f"datamatrix-{page_index}.png")
 
     # 2. Вычисляем размеры из Rect
     x0, y0, x1, y1 = rect

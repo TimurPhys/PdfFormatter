@@ -1,5 +1,7 @@
 from html_edit import *
 from html_edit import edit_document
+import asyncio
+import shutil
 from process.convert_to_pdf import html_to_pdf
 from process.request import convert_pdf_to_html
 
@@ -32,7 +34,6 @@ async def process_pdf(
             await html_to_pdf(html_result_path, pdf_result_path, settings)
 
             progress_cb(100)
-            print("Все этапы успешно завершены!")
 
     except Exception as e:
         raise Exception(f"Произошла ошибка: {e}")
@@ -41,6 +42,7 @@ async def process_pdf(
         tmp_png = os.path.join(output_dir, "datamatrix.png")
         tmp_html = os.path.join(output_dir, "output.html")
         tmp_result = os.path.join(output_dir, "result.html")
+        tmp_images_dir = os.path.join(output_dir, "images")
         for file_path in [tmp_png, tmp_html, tmp_result]:
             if os.path.exists(file_path):
                 try:
@@ -48,6 +50,16 @@ async def process_pdf(
                     print(f"Файл {file_path} успешно удален.")
                 except Exception as e:
                     print(f"Не удалось удалить {file_path}: {e}")
+        if os.path.exists(tmp_images_dir):
+            try:
+                shutil.rmtree(tmp_images_dir)
+                print("Папка удалена")
+            except Exception as e:
+                print(f"Не удалось удалить директорию {tmp_images_dir}: {e}")
+        else:
+            print("Папка не найдена")
+
+        print("Все этапы успешно завершены!")
         # УДАЛЯЕМ ПО ПОЛНЫМ ПУТЯМ
 
 
