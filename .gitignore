@@ -1,0 +1,6 @@
+*.pdf
+dist
+build
+gui.spec
+__pycache__
+.venv
