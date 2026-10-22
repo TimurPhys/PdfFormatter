@@ -227,7 +227,7 @@ class PDFProcessorGUI(QWidget):
                             raise ValueError
                         self.settings[key] = d_number
                     except ValueError:
-                        no_eror = False
+                        no_error = False
                         QMessageBox.warning(
                             self,
                             "Ошибка",
@@ -240,7 +240,7 @@ class PDFProcessorGUI(QWidget):
                             raise ValueError
                         self.settings[key] = int_number
                     except ValueError:
-                        no_eror = False
+                        no_error = False
                         QMessageBox.warning(
                             self,
                             "Ошибка",
@@ -280,6 +280,7 @@ def main():
     print("Запуск!")
     try:
         app = QApplication(sys.argv)
+        app.setApplicationName("PDF-Formatter-GUI")
         window = PDFProcessorGUI()
         window.show()
         sys.exit(app.exec_())

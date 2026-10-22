@@ -1,4 +1,4 @@
-import pymupdf  # PyMuPDF
+import pymupdf  # pymupdf
 from resize import resize_and_save_pdf
 import os
 
@@ -119,9 +119,21 @@ def process_pdf(input_pdf, output_path, settings, progress):
                     if (planned_rect_item.y1 + shift_y >= target_h - padding): ## Если выходим за нижнюю границу
                         if (resolved_rect_item.y0 - shift_y >= 0): # Делаем сдвиг вверх только, если есть место наверху
                             print("Сделан свдиг вверх")
+                            # resolved_rect["target"] = pymupdf.Rect(
+                            #     resolved_rect_item.x0, 
+                            #     resolved_rect_item.y0 - shift_y, 
+                            #     resolved_rect_item.x1, 
+                            #     resolved_rect_item.y1 - shift_y
+                            # )
                             resolved_rect["target"] -= (0, shift_y, 0, shift_y)
                     else:
                         print("Сделан свдиг вниз")
+                        # planned_rect["target"] = pymupdf.Rect(
+                        #     planned_rect_item.x0, 
+                        #     planned_rect_item.y0 + shift_y, 
+                        #     planned_rect_item.x1, 
+                        #     planned_rect_item.y1 + shift_y
+                        # )
                         planned_rect["target"] += (0, shift_y, 0, shift_y)
 
             resolved_rects.append(planned_rect)

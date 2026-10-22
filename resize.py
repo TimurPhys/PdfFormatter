@@ -1,4 +1,4 @@
-import pymupdf  # PyMuPDF
+import pymupdf  # pymupdf
 
 def resize_and_save_pdf(input_pdf, output_pdf, settings):
     mm_to_pt = 72 / 25.4

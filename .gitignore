@@ -4,3 +4,6 @@ build
 gui.spec
 __pycache__
 .venv
+PDFProcessor.egg-info
+tests
+inputs
